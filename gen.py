@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """プロフィール用の動く SVG を作る: python3 gen.py
-ぼやけた世界から畳み込み(ぼかし)が一段ずつ外れ、視界が中心から広がっていく。"""
+ぼやけた世界から畳み込み(ぼかし)が一段ずつ外れ、視界が中心から広がっていく。月・灯籠・蛍・流れ星が動き続ける。"""
 import random
 
 random.seed(226)
@@ -24,24 +24,43 @@ def ridge(y0, amp, color):
 
 
 def scene():
-    stars = ''.join(f'<circle cx="{random.uniform(0, W):.0f}" cy="{random.uniform(0, 170):.0f}" r="{random.uniform(.6, 1.5):.1f}" '
-                    f'fill="#E8EEF0" opacity="{random.uniform(.4, .9):.2f}" '
-                    f'style="animation:tw {random.uniform(3, 6):.1f}s ease-in-out {random.uniform(-6, 0):.1f}s infinite alternate"/>'
+    """夕暮れの湖畔。月が水面に揺れ、灯籠が昇り、蛍が漂い、ときどき流れ星が走る。"""
+    rnd = random.uniform
+    stars = ''.join(f'<circle cx="{rnd(0, W):.0f}" cy="{rnd(0, 170):.0f}" r="{rnd(.6, 1.5):.1f}" '
+                    f'fill="#F3EEF7" opacity="{rnd(.4, .9):.2f}" '
+                    f'style="animation:tw {rnd(3, 6):.1f}s ease-in-out {rnd(-6, 0):.1f}s infinite alternate"/>'
                     for _ in range(70))
+    meteors = ''.join(f'<path d="M{x} {y}l-90 36" stroke="url(#tail)" stroke-width="1.4" stroke-linecap="round" '
+                      f'style="animation:meteor {p}s ease-in {d}s infinite"/>' for x, y, p, d in ((420, 20, 7, 2), (900, 40, 11, 6)))
+    moon = ('<circle class="c" cx="760" cy="72" r="70" fill="url(#halo)" style="animation:breathe 6s ease-in-out infinite alternate"/>'
+            '<circle cx="760" cy="72" r="15" fill="#FBEFD9"/>')
+    glint = ''.join(f'<rect class="c" x="{760 - w / 2 + rnd(-5, 5):.0f}" y="{y + rnd(-1.5, 1.5):.1f}" width="{w:.0f}" height="1.2" rx=".6" fill="#FBEFD9" opacity="{.55 - (y - 212) / 200:.2f}" '
+                    f'style="animation:glint {rnd(1.6, 3):.1f}s ease-in-out {rnd(-3, 0):.1f}s infinite alternate"/>'
+                    for y in range(212, 300, 4) for w in [rnd(8, 18) + (y - 212) * .5])
     lights = ''
     for _ in range(26):
-        x, y, r = random.uniform(40, W - 40), random.uniform(204, 212), random.uniform(1, 2.2)
+        x, y, r = rnd(40, W - 40), rnd(204, 212), rnd(1, 2.2)
         lights += (f'<circle cx="{x:.0f}" cy="{y:.0f}" r="{r:.1f}" fill="#F2C879"/>'
-                   f'<rect x="{x - r / 2:.1f}" y="{y + 6:.0f}" width="{r:.1f}" height="{random.uniform(10, 26):.0f}" fill="#F2C879" opacity=".25"/>')
-    ripples = ''.join(f'<rect x="{random.uniform(0, W):.0f}" y="{random.uniform(222, 315):.0f}" width="{random.uniform(20, 90):.0f}" height="1" '
-                      f'fill="#B9C8CF" opacity=".18" style="animation:drift {random.uniform(6, 12):.0f}s ease-in-out {random.uniform(-12, 0):.1f}s infinite alternate"/>'
+                   f'<rect x="{x - r / 2:.1f}" y="{y + 6:.0f}" width="{r:.1f}" height="{rnd(10, 26):.0f}" fill="#F2C879" opacity=".25"/>')
+    ripples = ''.join(f'<rect x="{rnd(0, W):.0f}" y="{rnd(222, 315):.0f}" width="{rnd(20, 90):.0f}" height="1" '
+                      f'fill="#D8CBE0" opacity=".18" style="animation:drift {rnd(6, 12):.0f}s ease-in-out {rnd(-12, 0):.1f}s infinite alternate"/>'
                       for _ in range(36))
-    return ('<linearGradient id="sky" x2="0" y2="1"><stop offset="0" stop-color="#1F2A36"/><stop offset=".42" stop-color="#5E7686"/>'
-            '<stop offset=".56" stop-color="#C9B596"/></linearGradient>'
-            '<linearGradient id="lake" x2="0" y2="1"><stop offset="0" stop-color="#34475A"/><stop offset="1" stop-color="#18222D"/></linearGradient>'
-            f'<g id="scene"><rect width="{W}" height="{H}" fill="url(#sky)"/>{stars}'
-            + ridge(165, 14, '#566C7A') + ridge(185, 10, '#3E5263') + ridge(200, 6, '#2C3D4E')
-            + f'<rect y="208" width="{W}" height="{H - 208}" fill="url(#lake)"/>{ripples}{lights}</g>')
+    lanterns = ''.join(
+        f'<g style="animation:up {p:.0f}s linear {-rnd(0, p):.1f}s infinite"><g style="animation:sway {rnd(3, 5):.1f}s ease-in-out {rnd(-5, 0):.1f}s infinite alternate">'
+        f'<circle cx="{x:.0f}" cy="250" r="{9 * k:.1f}" fill="url(#glow)"/><rect x="{x - 2.5 * k:.1f}" y="{250 - 3.5 * k:.1f}" width="{5 * k:.1f}" height="{7 * k:.1f}" rx="{1.5 * k:.1f}" fill="#F7B867"/></g></g>'
+        for x, k, p in ((rnd(60, W - 60), rnd(.6, 1.2), rnd(16, 26)) for _ in range(16)))
+    flies = ''.join(f'<circle cx="{rnd(30, W - 30):.0f}" cy="{rnd(190, 300):.0f}" r="1.3" fill="#FFF3B0" '
+                    f'style="animation:fly {rnd(5, 9):.1f}s ease-in-out {rnd(-9, 0):.1f}s infinite alternate,tw {rnd(1.2, 2.5):.1f}s ease-in-out {rnd(-2, 0):.1f}s infinite alternate"/>'
+                    for _ in range(24))
+    return ('<linearGradient id="sky" x2="0" y2="1"><stop offset="0" stop-color="#1C1A33"/><stop offset=".38" stop-color="#4A4570"/>'
+            '<stop offset=".56" stop-color="#E0A9A2"/></linearGradient>'
+            '<linearGradient id="lake" x2="0" y2="1"><stop offset="0" stop-color="#3B3658"/><stop offset="1" stop-color="#17152A"/></linearGradient>'
+            '<radialGradient id="halo"><stop offset="0" stop-color="#FBEFD9" stop-opacity=".45"/><stop offset="1" stop-color="#FBEFD9" stop-opacity="0"/></radialGradient>'
+            '<radialGradient id="glow"><stop offset="0" stop-color="#FFC978" stop-opacity=".6"/><stop offset="1" stop-color="#FFC978" stop-opacity="0"/></radialGradient>'
+            '<linearGradient id="tail" x1="1" x2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#fff"/></linearGradient>'
+            f'<g id="scene"><rect width="{W}" height="{H}" fill="url(#sky)"/>{stars}{meteors}{moon}'
+            + ridge(165, 14, '#6A5F86') + ridge(185, 10, '#4A4368') + ridge(200, 6, '#332E4F')
+            + f'<rect y="208" width="{W}" height="{H - 208}" fill="url(#lake)"/>{glint}{ripples}{lights}{lanterns}{flies}</g>')
 
 
 def grid(k):
@@ -51,8 +70,13 @@ def grid(k):
 
 
 def header():
-    css = ".v{transform-box:view-box;transform-origin:500px 160px}.b,.g{opacity:0}"
-    css += "@keyframes tw{to{opacity:.15}}@keyframes drift{to{transform:translateX(24px)}}"
+    css = ".c{transform-box:fill-box;transform-origin:center}.v{transform-box:view-box;transform-origin:500px 160px}.b,.g{opacity:0}"
+    css += ("@keyframes tw{to{opacity:.15}}@keyframes drift{to{transform:translateX(24px)}}"
+            "@keyframes breathe{to{transform:scale(1.15)}}@keyframes glint{to{transform:scaleX(.55);opacity:.15}}"
+            "@keyframes up{0%{transform:translateY(0);opacity:0}8%{opacity:1}80%{opacity:.9}100%{transform:translateY(-300px);opacity:0}}"
+            "@keyframes sway{from{transform:translateX(-7px)}to{transform:translateX(7px)}}"
+            "@keyframes fly{to{transform:translate(18px,-14px)}}"
+            "@keyframes meteor{0%,88%{transform:translate(0,0);opacity:0}90%{opacity:1}100%{transform:translate(-160px,64px);opacity:0}}")
     for k in range(5):
         css += (f'@keyframes b{k}{{0%,{pct(OFF[k])}{{opacity:1}}{pct(OFF[k] + .7)},{pct(BACK[k])}{{opacity:0}}{pct(BACK[k] + .6)},100%{{opacity:1}}}}'
                 f'.b{k}{{animation:b{k} {T}s ease-in-out infinite}}')
@@ -71,12 +95,12 @@ def header():
             f'<mask id="m" maskUnits="userSpaceOnUse" x="0" y="0" width="{W}" height="{H}"><rect width="{W}" height="{H}"/>'
             '<circle class="v ap" cx="500" cy="160" r="760" fill="url(#eye)"/></mask>'
             f'<clipPath id="card"><rect width="{W}" height="{H}" rx="18"/></clipPath></defs>')
-    body = ('<g clip-path="url(#card)"><rect width="1000" height="320" fill="#141B22"/>'
+    body = ('<g clip-path="url(#card)"><rect width="1000" height="320" fill="#15131F"/>'
             '<use href="#scene" filter="url(#f0)" opacity=".55"/><g mask="url(#m)"><use href="#scene"/>'
             + ''.join(f'<use class="b b{k}" href="#scene" filter="url(#f{k})"/>' for k in reversed(range(5)))
             + ''.join(f'<rect class="g g{k}" width="{W}" height="{H}" fill="url(#g{k})" style="mix-blend-mode:soft-light"/>' for k in range(5))
             + '</g></g>')
-    label = 'ぼやけた夜の湖畔が、畳み込みが一段ずつ外れるように中心から澄んで広がっていく'
+    label = 'ぼやけた夕暮れの湖畔が、畳み込みが一段ずつ外れるように中心から澄んで広がっていく'
     with open('header.svg', 'w') as f:
         f.write(f'<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 {W} {H}" '
                 f'width="{W}" height="{H}" role="img" aria-label="{label}"><title>{label}</title><style>{css}</style>{defs}{body}</svg>\n')
