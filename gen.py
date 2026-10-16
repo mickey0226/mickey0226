@@ -155,5 +155,93 @@ def welcome():
                 f'aria-label="{label}"><title>{label}</title><style>{css}</style>{body}</svg>\n')
 
 
+def save(name, w, h, label, css, body):
+    css += ".c{transform-box:fill-box;transform-origin:center}@media (prefers-reduced-motion:reduce){*{animation:none!important}}"
+    with open(name, 'w') as f:
+        f.write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}" role="img" '
+                f'aria-label="{label}"><title>{label}</title><style>{css}</style>'
+                f'<clipPath id="k"><rect width="{w}" height="{h}" rx="18"/></clipPath><g clip-path="url(#k)">{body}</g></svg>\n')
+
+
+SKY = ('<linearGradient id="night" x2="0" y2="1"><stop offset="0" stop-color="#1C1A33"/><stop offset="1" stop-color="#2E2A4C"/></linearGradient>'
+       '<radialGradient id="soft"><stop offset="0" stop-color="#FFC978" stop-opacity=".6"/><stop offset="1" stop-color="#FFC978" stop-opacity="0"/></radialGradient>')
+
+
+def dust(n, w, h):
+    rnd = random.uniform
+    return ''.join(f'<circle cx="{rnd(0, w):.0f}" cy="{rnd(0, h):.0f}" r="{rnd(.5, 1.2):.1f}" fill="#F3EEF7" opacity="{rnd(.3, .8):.2f}" '
+                   f'style="animation:tw {rnd(3, 6):.1f}s ease-in-out {rnd(-6, 0):.1f}s infinite alternate"/>' for _ in range(n))
+
+
+def constellation():
+    """星が一つずつ結ばれて星座になり、しばらく輝いてからほどけていく。"""
+    w, h, T, rnd = 1000, 200, 16, random.uniform
+    body = f'<defs>{SKY}</defs><rect width="{w}" height="{h}" fill="url(#night)"/>' + dust(90, w, h)
+    body += ('<ellipse class="c" cx="500" cy="100" rx="520" ry="40" fill="#8E86C9" opacity=".08" '
+             'style="animation:drift 20s ease-in-out infinite alternate"/>')
+    css = "@keyframes tw{to{opacity:.15}}@keyframes drift{from{transform:rotate(-8deg)}to{transform:translateX(40px) rotate(-8deg)}}"
+    t = 0
+    for g, cx in enumerate((150, 390, 620, 860)):
+        pts = [(cx + rnd(-90, 90), rnd(30, 170)) for _ in range(random.randint(5, 7))]
+        pts.sort()
+        for i, ((x0, y0), (x1, y1)) in enumerate(zip(pts, pts[1:])):
+            a, b = t / T * 100, (t + .45) / T * 100
+            css += (f'@keyframes l{g}{i}{{0%,{a:.1f}%{{stroke-dashoffset:1}}{b:.1f}%,80%{{stroke-dashoffset:0;opacity:1}}90%,100%{{stroke-dashoffset:0;opacity:0}}}}')
+            body += (f'<path d="M{x0:.0f} {y0:.0f}L{x1:.0f} {y1:.0f}" pathLength="1" stroke-dasharray="1" stroke="#D8CBE0" stroke-width=".9" opacity=".7" '
+                     f'style="animation:l{g}{i} {T}s ease-in-out infinite"/>')
+            t += .45
+        for i, (x, y) in enumerate(pts):
+            body += (f'<circle class="c" cx="{x:.0f}" cy="{y:.0f}" r="9" fill="url(#soft)" style="animation:bloom {T}s ease-out {-(T - (t - (len(pts) - 1 - i) * .45)):.2f}s infinite"/>'
+                     f'<circle cx="{x:.0f}" cy="{y:.0f}" r="2" fill="#FFF3D6"/>')
+        t += .6
+    css += "@keyframes bloom{0%{transform:scale(.3);opacity:0}4%{transform:scale(1.4);opacity:1}12%,100%{transform:scale(1);opacity:.7}}"
+    save('constellation.svg', w, h, '星が一つずつ結ばれて星座になり、輝いてからほどけていく', css, body)
+
+
+def repo(name, desc):
+    """リポジトリへの入口。揺れる提灯と名前の札。画像ごとリンクにして使う。"""
+    w, h = 1000, 120
+    css = ("@keyframes swing{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}.sw{transform-box:view-box;transform-origin:90px 0}"
+           "@keyframes breathe{to{opacity:.55}}")
+    body = (f'<defs>{SKY}<linearGradient id="paper" x2="0" y2="1"><stop offset="0" stop-color="#FFD9A0"/><stop offset="1" stop-color="#E8955A"/></linearGradient></defs>'
+            f'<rect width="{w}" height="{h}" fill="url(#night)"/>{dust(40, w, h)}'
+            '<g class="sw" style="animation:swing 3.2s ease-in-out infinite alternate"><path d="M90 0v34" stroke="#5A4036" stroke-width="2"/>'
+            '<circle cx="90" cy="64" r="46" fill="url(#soft)" style="animation:breathe 2.6s ease-in-out infinite alternate"/>'
+            '<rect x="72" y="36" width="36" height="56" rx="16" fill="url(#paper)"/>'
+            '<path d="M74 50h32M73 64h34M74 78h32" stroke="#B8683F" stroke-width="1" opacity=".6"/>'
+            '<rect x="80" y="32" width="20" height="5" rx="1.5" fill="#3B2A24"/><rect x="80" y="91" width="20" height="5" rx="1.5" fill="#3B2A24"/></g>'
+            f'<text x="170" y="58" font-size="30" fill="#F6E3C4" style="font-family:Georgia,serif">{name}</text>'
+            f'<text x="172" y="88" font-size="17" font-style="italic" fill="#B9AFD6" style="font-family:Georgia,serif">{desc}</text>')
+    save(f'repo-{name}.svg', w, h, f'{name} — {desc}', css, body)
+
+
+def footer():
+    """夜が更ける。月が湖へ沈み、灯籠が一つ水面を流れていき、蛍が消えていく。"""
+    w, h, rnd = 1000, 170, random.uniform
+    css = ("@keyframes tw{to{opacity:.15}}@keyframes sink{from{transform:translateY(-30px)}to{transform:translateY(20px)}}"
+           "@keyframes float{from{transform:translateX(-80px)}to{transform:translateX(1080px)}}"
+           "@keyframes bob{from{transform:translateY(-2px)}to{transform:translateY(2px)}}"
+           "@keyframes fly{0%{opacity:0}30%{opacity:1}100%{transform:translate(20px,-30px);opacity:0}}"
+           "@keyframes glint{to{transform:scaleX(.5);opacity:.1}}")
+    glint = ''.join(f'<rect class="c" x="{700 - ww / 2 + rnd(-4, 4):.0f}" y="{y}" width="{ww:.0f}" height="1.2" fill="#FBEFD9" opacity=".4" '
+                    f'style="animation:glint {rnd(1.6, 3):.1f}s ease-in-out {rnd(-3, 0):.1f}s infinite alternate"/>'
+                    for y in range(112, 168, 4) for ww in [rnd(8, 16) + (y - 112) * .4])
+    flies = ''.join(f'<circle cx="{rnd(30, w - 30):.0f}" cy="{rnd(90, 160):.0f}" r="1.3" fill="#FFF3B0" '
+                    f'style="animation:fly {rnd(4, 8):.1f}s ease-out {rnd(-8, 0):.1f}s infinite"/>' for _ in range(16))
+    body = (f'<defs>{SKY}<linearGradient id="water" x2="0" y2="1"><stop offset="0" stop-color="#2B2747"/><stop offset="1" stop-color="#121022"/></linearGradient>'
+            '<radialGradient id="mh"><stop offset="0" stop-color="#FBEFD9" stop-opacity=".35"/><stop offset="1" stop-color="#FBEFD9" stop-opacity="0"/></radialGradient></defs>'
+            f'<rect width="{w}" height="{h}" fill="url(#night)"/>{dust(60, w, 100)}'
+            '<g style="animation:sink 24s ease-in-out infinite alternate"><circle cx="700" cy="80" r="50" fill="url(#mh)"/><circle cx="700" cy="80" r="13" fill="#FBEFD9"/></g>'
+            f'<path d="M0 104 Q 250 92 500 102 T 1000 100 V110 H0Z" fill="#221F3B"/><rect y="108" width="{w}" height="{h - 108}" fill="url(#water)"/>{glint}'
+            '<g style="animation:float 30s linear infinite"><g style="animation:bob 2.4s ease-in-out infinite alternate">'
+            '<circle cx="0" cy="118" r="22" fill="url(#soft)"/><rect x="-6" y="110" width="12" height="12" rx="2" fill="#F7B867"/>'
+            '<path d="M-10 122h20l-3 4h-14z" fill="#3B2A24"/><rect x="-2" y="128" width="4" height="12" fill="#F7B867" opacity=".25"/></g></g>'
+            f'{flies}')
+    save('footer.svg', w, h, '夜が更け、月が湖へ沈み、灯籠が一つ水面を流れていく', css, body)
+
+
 header()
 welcome()
+constellation()
+repo('freenerf-jax', 'FreeNeRF, written in JAX')
+footer()
