@@ -106,4 +106,51 @@ def header():
                 f'width="{W}" height="{H}" role="img" aria-label="{label}"><title>{label}</title><style>{css}</style>{defs}{body}</svg>\n')
 
 
+def welcome():
+    """来た人を迎える: 障子が左右に開いて灯りがこぼれ、道の灯籠が戸口から外へ順に灯り、光の粒が舞い出る。"""
+    w, h, rnd = 1000, 180, random.uniform
+    lattice = lambda x0: ''.join(f'<path d="M{x0 + 20 * i} 30v120" />' for i in (1, 2)) + ''.join(
+        f'<path d="M{x0} {30 + 30 * j}h60" />' for j in (1, 2, 3))
+    door = lambda x0, d: (f'<g style="animation:{d} 1.4s cubic-bezier(.23,1,.32,1) .6s backwards" class="{d}">'
+                          f'<rect x="{x0}" y="30" width="60" height="120" fill="#F6E3C4" fill-opacity=".92"/>'
+                          f'<g stroke="#5A4036" stroke-width="2">{lattice(x0)}</g>'
+                          f'<rect x="{x0}" y="30" width="60" height="120" fill="none" stroke="#5A4036" stroke-width="4"/></g>')
+    lamps = ''
+    for i in range(6):
+        for sgn in (-1, 1):
+            x = 500 + sgn * (150 + i * 66)
+            lamps += (f'<g style="animation:lit .8s ease-out {1.6 + i * .22:.2f}s backwards">'
+                      f'<circle cx="{x}" cy="146" r="18" fill="url(#lg)" style="animation:flick {rnd(2, 3.5):.1f}s ease-in-out {rnd(-3, 0):.1f}s infinite alternate"/>'
+                      f'<rect x="{x - 3}" y="140" width="6" height="10" rx="1.5" fill="#FFD9A0"/></g>'
+                      f'<rect x="{x - 4}" y="150" width="8" height="12" fill="#2A2540"/>')
+    sparks = ''.join(f'<circle cx="500" cy="95" r="{rnd(1.4, 3):.1f}" fill="#FFE2B0" '
+                     f'style="--x:{rnd(-420, 420):.0f}px;--y:{rnd(-80, 70):.0f}px;animation:spark {rnd(4, 7):.1f}s ease-out {1.4 + rnd(0, 5):.1f}s infinite backwards"/>'
+                     for _ in range(32))
+    css = ("@keyframes dl{from{transform:translateX(60px)}}@keyframes dr{from{transform:translateX(-60px)}}"
+           ".dl{transform:translateX(0)}.dr{transform:translateX(0)}"
+           "@keyframes glow{from{opacity:0;transform:scaleX(.1)}}@keyframes breathe{to{opacity:.75}}"
+           "@keyframes lit{from{opacity:.15}}@keyframes flick{to{opacity:.6}}"
+           "@keyframes spark{0%{transform:translate(0,0) scale(.5);opacity:0}15%{opacity:1}100%{transform:translate(var(--x),var(--y)) scale(1.4);opacity:0}}"
+           ".c{transform-box:fill-box;transform-origin:center}"
+           "@media (prefers-reduced-motion:reduce){*{animation:none!important}}")
+    body = ('<defs><radialGradient id="room"><stop offset="0" stop-color="#FFE7BD"/><stop offset="1" stop-color="#E8955A"/></radialGradient>'
+            '<radialGradient id="aura"><stop offset="0" stop-color="#FFC978" stop-opacity=".5"/><stop offset="1" stop-color="#FFC978" stop-opacity="0"/></radialGradient>'
+            '<radialGradient id="lg"><stop offset="0" stop-color="#FFC978" stop-opacity=".7"/><stop offset="1" stop-color="#FFC978" stop-opacity="0"/></radialGradient>'
+            '<linearGradient id="spill" x2="0" y2="1"><stop offset="0" stop-color="#FFC978" stop-opacity=".45"/><stop offset="1" stop-color="#FFC978" stop-opacity="0"/></linearGradient>'
+            '<linearGradient id="dusk" x2="0" y2="1"><stop offset="0" stop-color="#1C1A33"/><stop offset="1" stop-color="#2E2A4C"/></linearGradient>'
+            f'<clipPath id="wc"><rect width="{w}" height="{h}" rx="18"/></clipPath></defs>'
+            f'<g clip-path="url(#wc)"><rect width="{w}" height="{h}" fill="url(#dusk)"/><rect y="150" width="{w}" height="30" fill="#211E37"/>'
+            '<g class="c" style="animation:glow 1.6s ease-out .8s backwards"><ellipse cx="500" cy="95" rx="260" ry="90" fill="url(#aura)" class="c" style="animation:breathe 4s ease-in-out 2.4s infinite alternate"/>'
+            '<polygon points="440,150 560,150 720,180 280,180" fill="url(#spill)"/></g>'
+            '<rect x="440" y="30" width="120" height="120" fill="url(#room)"/>'
+            f'{door(380, "dl")}{door(560, "dr")}'
+            '<path d="M372 26h256" stroke="#5A4036" stroke-width="6" stroke-linecap="round"/>'
+            f'{lamps}{sparks}</g>')
+    label = '障子が開いて温かい灯りがこぼれ、道の灯籠が順に灯って迎え入れる'
+    with open('welcome.svg', 'w') as f:
+        f.write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}" role="img" '
+                f'aria-label="{label}"><title>{label}</title><style>{css}</style>{body}</svg>\n')
+
+
 header()
+welcome()
