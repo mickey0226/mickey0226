@@ -198,23 +198,6 @@ def constellation():
     save('constellation.svg', w, h, '星が一つずつ結ばれて星座になり、輝いてからほどけていく', css, body)
 
 
-def repo(name, desc):
-    """リポジトリへの入口。揺れる提灯と名前の札。画像ごとリンクにして使う。"""
-    w, h = 1000, 120
-    css = ("@keyframes swing{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}.sw{transform-box:view-box;transform-origin:90px 0}"
-           "@keyframes breathe{to{opacity:.55}}")
-    body = (f'<defs>{SKY}<linearGradient id="paper" x2="0" y2="1"><stop offset="0" stop-color="#FFD9A0"/><stop offset="1" stop-color="#E8955A"/></linearGradient></defs>'
-            f'<rect width="{w}" height="{h}" fill="url(#night)"/>{dust(40, w, h)}'
-            '<g class="sw" style="animation:swing 3.2s ease-in-out infinite alternate"><path d="M90 0v34" stroke="#5A4036" stroke-width="2"/>'
-            '<circle cx="90" cy="64" r="46" fill="url(#soft)" style="animation:breathe 2.6s ease-in-out infinite alternate"/>'
-            '<rect x="72" y="36" width="36" height="56" rx="16" fill="url(#paper)"/>'
-            '<path d="M74 50h32M73 64h34M74 78h32" stroke="#B8683F" stroke-width="1" opacity=".6"/>'
-            '<rect x="80" y="32" width="20" height="5" rx="1.5" fill="#3B2A24"/><rect x="80" y="91" width="20" height="5" rx="1.5" fill="#3B2A24"/></g>'
-            f'<text x="170" y="58" font-size="30" fill="#F6E3C4" style="font-family:Georgia,serif">{name}</text>'
-            f'<text x="172" y="88" font-size="17" font-style="italic" fill="#B9AFD6" style="font-family:Georgia,serif">{desc}</text>')
-    save(f'repo-{name}.svg', w, h, f'{name} — {desc}', css, body)
-
-
 def footer():
     """夜が更ける。月が湖へ沈み、灯籠が一つ水面を流れていき、蛍が消えていく。"""
     w, h, rnd = 1000, 170, random.uniform
@@ -243,5 +226,4 @@ def footer():
 header()
 welcome()
 constellation()
-repo('freenerf-jax', 'FreeNeRF, written in JAX')
 footer()
