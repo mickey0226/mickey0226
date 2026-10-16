@@ -126,9 +126,7 @@ def welcome():
     sparks = ''.join(f'<circle cx="500" cy="95" r="{rnd(1.4, 3):.1f}" fill="#FFE2B0" '
                      f'style="--x:{rnd(-420, 420):.0f}px;--y:{rnd(-80, 70):.0f}px;animation:spark {rnd(4, 7):.1f}s ease-out {1.4 + rnd(0, 5):.1f}s infinite backwards"/>'
                      for _ in range(32))
-    word = ''.join(f'<tspan style="animation:hi .7s cubic-bezier(.23,1,.32,1) {1.3 + i * .07:.2f}s backwards">{ch}</tspan>'
-                   for i, ch in enumerate('Welcome!'))
-    css = ("@keyframes hi{from{opacity:0}}@keyframes dl{from{transform:translateX(60px)}}@keyframes dr{from{transform:translateX(-60px)}}"
+    css = ("@keyframes hi{from{opacity:0;transform:translateY(8px)}}@keyframes dl{from{transform:translateX(60px)}}@keyframes dr{from{transform:translateX(-60px)}}"
            ".dl{transform:translateX(0)}.dr{transform:translateX(0)}"
            "@keyframes glow{from{opacity:0;transform:scaleX(.1)}}@keyframes breathe{to{opacity:.75}}"
            "@keyframes lit{from{opacity:.15}}@keyframes flick{to{opacity:.6}}"
@@ -145,9 +143,10 @@ def welcome():
             '<g class="c" style="animation:glow 1.6s ease-out .8s backwards"><ellipse cx="500" cy="95" rx="260" ry="90" fill="url(#aura)" class="c" style="animation:breathe 4s ease-in-out 2.4s infinite alternate"/>'
             '<polygon points="440,150 560,150 720,180 280,180" fill="url(#spill)"/></g>'
             '<rect x="440" y="30" width="120" height="120" fill="url(#room)"/>'
-            f'<text x="500" y="100" text-anchor="middle" font-size="23" font-style="italic" fill="#5A4036" '
-            f'style="font-family:Georgia,serif">{word}</text>'
             f'{door(380, "dl")}{door(560, "dr")}'
+            '<text class="c" x="500" y="104" text-anchor="middle" font-size="42" font-style="italic" fill="#FFF6E6" '
+            'stroke="#4A3229" stroke-width="4" paint-order="stroke" '
+            'style="font-family:Georgia,serif;animation:hi 1.2s cubic-bezier(.23,1,.32,1) 1.4s backwards">Welcome!</text>'
             '<path d="M372 26h256" stroke="#5A4036" stroke-width="6" stroke-linecap="round"/>'
             f'{lamps}{sparks}</g>')
     label = 'Welcome! 障子が開いて温かい灯りがこぼれ、道の灯籠が順に灯って迎え入れる'
