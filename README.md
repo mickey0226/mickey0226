@@ -1,3 +1,3 @@
 <div align="center">
-  <img src="header.svg" alt="mickey0226 — 木が一本ゆっくり育ち、足もとの草のマスから芽が出る" width="100%">
+  <img src="header.svg" alt="ぼやけた夜の湖畔が、畳み込みが一段ずつ外れるように中心から澄んで広がっていく" width="100%">
 </div>
