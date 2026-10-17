@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 """プロフィール用の動く SVG を作る: python3 gen.py
 ぼやけた世界から畳み込み(ぼかし)が一段ずつ外れ、視界が中心から広がっていく。月・灯籠・蛍・流れ星が動き続ける。"""
+import cmath
+import math
 import random
 
 random.seed(226)
@@ -107,8 +109,14 @@ def header():
 
 
 def welcome():
-    """来た人を迎える: 障子が左右に開いて灯りがこぼれ、道の灯籠が戸口から外へ順に灯り、光の粒が舞い出る。"""
+    """来た人を迎える: 障子が開くと戸口の二つの隙間から円い波面が広がって重なり(ヤングの二重スリット)、
+    道に明暗の干渉縞 I ∝ cos²(πx/F)·sinc²(x/E) が落ちる。灯籠が戸口から外へ順に灯る。"""
     w, h, rnd = 1000, 180, random.uniform
+    waves = ''.join(f'<circle class="c" cx="{x}" cy="95" r="520" fill="none" stroke="#FFE2B0" stroke-width="1" vector-effect="non-scaling-stroke" '
+                    f'style="animation:wave 6s linear {1.6 + j / 4:.2f}s infinite backwards"/>' for x in (470, 530) for j in range(24))
+    fringe = ''.join(f'<rect x="{x}" y="150" width="4" height="30" fill="#FFC978" '
+                     f'opacity="{.6 * math.cos(math.pi * (x - 498) / 56) ** 2 * (math.sin(u := (x - 498) / 130 + 1e-9) / u) ** 2:.2f}"/>'
+                     for x in range(0, w, 4))
     lattice = lambda x0: ''.join(f'<path d="M{x0 + 20 * i} 30v120" />' for i in (1, 2)) + ''.join(
         f'<path d="M{x0} {30 + 30 * j}h60" />' for j in (1, 2, 3))
     door = lambda x0, d: (f'<g style="animation:{d} 1.4s cubic-bezier(.23,1,.32,1) .6s backwards" class="{d}">'
@@ -130,18 +138,18 @@ def welcome():
            ".dl{transform:translateX(0)}.dr{transform:translateX(0)}"
            "@keyframes glow{from{opacity:0;transform:scaleX(.1)}}@keyframes breathe{to{opacity:.75}}"
            "@keyframes lit{from{opacity:.15}}@keyframes flick{to{opacity:.6}}"
+           "@keyframes wave{from{transform:scale(0);opacity:.3}to{transform:scale(1);opacity:0}}"
            "@keyframes spark{0%{transform:translate(0,0) scale(.5);opacity:0}15%{opacity:1}100%{transform:translate(var(--x),var(--y)) scale(1.4);opacity:0}}"
            ".c{transform-box:fill-box;transform-origin:center}"
            "@media (prefers-reduced-motion:reduce){*{animation:none!important}}")
     body = ('<defs><radialGradient id="room"><stop offset="0" stop-color="#FFE7BD"/><stop offset="1" stop-color="#E8955A"/></radialGradient>'
             '<radialGradient id="aura"><stop offset="0" stop-color="#FFC978" stop-opacity=".5"/><stop offset="1" stop-color="#FFC978" stop-opacity="0"/></radialGradient>'
             '<radialGradient id="lg"><stop offset="0" stop-color="#FFC978" stop-opacity=".7"/><stop offset="1" stop-color="#FFC978" stop-opacity="0"/></radialGradient>'
-            '<linearGradient id="spill" x2="0" y2="1"><stop offset="0" stop-color="#FFC978" stop-opacity=".45"/><stop offset="1" stop-color="#FFC978" stop-opacity="0"/></linearGradient>'
             '<linearGradient id="dusk" x2="0" y2="1"><stop offset="0" stop-color="#1C1A33"/><stop offset="1" stop-color="#2E2A4C"/></linearGradient>'
             f'<clipPath id="wc"><rect width="{w}" height="{h}" rx="18"/></clipPath></defs>'
-            f'<g clip-path="url(#wc)"><rect width="{w}" height="{h}" fill="url(#dusk)"/><rect y="150" width="{w}" height="30" fill="#211E37"/>'
-            '<g class="c" style="animation:glow 1.6s ease-out .8s backwards"><ellipse cx="500" cy="95" rx="260" ry="90" fill="url(#aura)" class="c" style="animation:breathe 4s ease-in-out 2.4s infinite alternate"/>'
-            '<polygon points="440,150 560,150 720,180 280,180" fill="url(#spill)"/></g>'
+            f'<g clip-path="url(#wc)"><rect width="{w}" height="{h}" fill="url(#dusk)"/><rect y="150" width="{w}" height="30" fill="#211E37"/>{waves}'
+            f'<g class="c" style="animation:glow 1.6s ease-out .8s backwards">{fringe}<ellipse cx="500" cy="95" rx="260" ry="90" fill="url(#aura)" class="c" style="animation:breathe 4s ease-in-out 2.4s infinite alternate"/>'
+            '</g>'
             '<rect x="440" y="30" width="120" height="120" fill="url(#room)"/>'
             f'{door(380, "dl")}{door(560, "dr")}'
             '<text class="c" x="500" y="104" text-anchor="middle" font-size="42" font-style="italic" fill="#FFF6E6" '
@@ -149,7 +157,7 @@ def welcome():
             'style="font-family:Georgia,serif;animation:hi 1.2s cubic-bezier(.23,1,.32,1) 1.4s backwards">Welcome!</text>'
             '<path d="M372 26h256" stroke="#5A4036" stroke-width="6" stroke-linecap="round"/>'
             f'{lamps}{sparks}</g>')
-    label = 'Welcome! 障子が開いて温かい灯りがこぼれ、道の灯籠が順に灯って迎え入れる'
+    label = 'Welcome! 障子が開くと二つの隙間から光の波が広がって重なり、道に干渉縞が落ち、灯籠が順に灯る'
     with open('welcome.svg', 'w') as f:
         f.write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}" role="img" '
                 f'aria-label="{label}"><title>{label}</title><style>{css}</style>{body}</svg>\n')
@@ -173,39 +181,60 @@ def dust(n, w, h):
                    f'style="animation:tw {rnd(3, 6):.1f}s ease-in-out {rnd(-6, 0):.1f}s infinite alternate"/>' for _ in range(n))
 
 
+def epicycles(pts, K, T):
+    """折れ線を往復した閉曲線を弧長で等分し、離散フーリエ変換の大きい順に K 項の周転円で描き直す。"""
+    z = [complex(*p) for p in pts + pts[-2:0:-1] + pts[:1]]
+    seg = [abs(q - p) for p, q in zip(z, z[1:])]
+    L, M, path, i, acc = sum(seg), 128, [], 0, 0
+    for m in range(M):
+        while acc + seg[i] < m * L / M:
+            acc, i = acc + seg[i], i + 1
+        path.append(z[i] + (z[i + 1] - z[i]) * (m * L / M - acc) / seg[i])
+    c = sorted(((sum(p * cmath.exp(-2j * math.pi * k * m / M) for m, p in enumerate(path)) / M, k)
+                for k in range(-M // 2, M // 2)), key=lambda t: -abs(t[0]))[:K]
+    curve = [sum(a * cmath.exp(2j * math.pi * k * m / 256) for a, k in c) for m in range(257)]
+    rings, f0, a0 = '', 0, 0
+    for a, k in c[1:]:   # c[0] は k=0 の中心。各段の回転は親との差だけ回す
+        d, ph = k - f0, math.degrees(cmath.phase(a) - a0)
+        rings += (f'<g style="transform:rotate({ph:.1f}deg)"><g style="animation:spin {T / abs(d):.3f}s linear infinite{" reverse" if d < 0 else ""}">'
+                  f'<circle r="{abs(a):.1f}" fill="none" stroke="#8E86C9" stroke-width=".6" opacity=".45"/><path d="M0 0H{abs(a):.1f}" stroke="#D8CBE0" stroke-width=".6" opacity=".6"/>'
+                  f'<g transform="translate({abs(a):.1f})">')
+        f0, a0 = k, cmath.phase(a)
+    rings += '<circle r="2.2" fill="#FFF3D6"/>' + '</g></g></g>' * (len(c) - 1)
+    d = 'M' + 'L'.join(f'{p.real:.1f} {p.imag:.1f}' for p in curve)
+    return (f'<path d="{d}" pathLength="1" stroke-dasharray="1" fill="none" stroke="#D8CBE0" stroke-width=".9" style="animation:trace {T}s linear infinite"/>'
+            f'<g transform="translate({c[0][0].real:.1f} {c[0][0].imag:.1f})">{rings}</g>')
+
+
 def constellation():
-    """星が一つずつ結ばれて星座になり、しばらく輝いてからほどけていく。"""
+    """星座の線を、回る円を重ねたフーリエ級数(周転円)の先端が描いていく。"""
     w, h, T, rnd = 1000, 200, 16, random.uniform
     body = f'<defs>{SKY}</defs><rect width="{w}" height="{h}" fill="url(#night)"/>' + dust(90, w, h)
     body += ('<ellipse class="c" cx="500" cy="100" rx="520" ry="40" fill="#8E86C9" opacity=".08" '
              'style="animation:drift 20s ease-in-out infinite alternate"/>')
-    css = "@keyframes tw{to{opacity:.15}}@keyframes drift{from{transform:rotate(-8deg)}to{transform:translateX(40px) rotate(-8deg)}}"
-    t = 0
-    for g, cx in enumerate((150, 390, 620, 860)):
-        pts = [(cx + rnd(-90, 90), rnd(30, 170)) for _ in range(random.randint(5, 7))]
-        pts.sort()
-        for i, ((x0, y0), (x1, y1)) in enumerate(zip(pts, pts[1:])):
-            a, b = t / T * 100, (t + .45) / T * 100
-            css += (f'@keyframes l{g}{i}{{0%,{a:.1f}%{{stroke-dashoffset:1}}{b:.1f}%,80%{{stroke-dashoffset:0;opacity:1}}90%,100%{{stroke-dashoffset:0;opacity:0}}}}')
-            body += (f'<path d="M{x0:.0f} {y0:.0f}L{x1:.0f} {y1:.0f}" pathLength="1" stroke-dasharray="1" stroke="#D8CBE0" stroke-width=".9" opacity=".7" '
-                     f'style="animation:l{g}{i} {T}s ease-in-out infinite"/>')
-            t += .45
-        for i, (x, y) in enumerate(pts):
-            body += (f'<circle class="c" cx="{x:.0f}" cy="{y:.0f}" r="9" fill="url(#soft)" style="animation:bloom {T}s ease-out {-(T - (t - (len(pts) - 1 - i) * .45)):.2f}s infinite"/>'
-                     f'<circle cx="{x:.0f}" cy="{y:.0f}" r="2" fill="#FFF3D6"/>')
-        t += .6
-    css += "@keyframes bloom{0%{transform:scale(.3);opacity:0}4%{transform:scale(1.4);opacity:1}12%,100%{transform:scale(1);opacity:.7}}"
-    save('constellation.svg', w, h, '星が一つずつ結ばれて星座になり、輝いてからほどけていく', css, body)
+    css = ("@keyframes tw{to{opacity:.15}}@keyframes drift{from{transform:rotate(-8deg)}to{transform:translateX(40px) rotate(-8deg)}}"
+           "@keyframes spin{to{transform:rotate(360deg)}}"
+           "@keyframes trace{0%{stroke-dashoffset:1;opacity:1}88%{opacity:1}100%{stroke-dashoffset:0;opacity:0}}")
+    for cx in (150, 390, 620, 860):
+        pts = sorted((cx + rnd(-90, 90), rnd(30, 170)) for _ in range(random.randint(5, 7)))
+        body += epicycles(pts, 24, T) + ''.join(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="9" fill="url(#soft)" opacity=".6"/>'
+                                               f'<circle cx="{x:.0f}" cy="{y:.0f}" r="2" fill="#FFF3D6"/>' for x, y in pts)
+    save('constellation.svg', w, h, '星座の線を、回る円を重ねたフーリエ級数(周転円)の先端が描いていく', css, body)
 
 
 def footer():
-    """夜が更ける。月が湖へ沈み、灯籠が一つ水面を流れていき、蛍が消えていく。"""
+    """夜が更ける。月が湖へ沈み、流れる灯籠が水面に波紋を出し続ける。波源が動くので、
+    波紋は進む先で詰まり後ろで間延びする(ドップラー効果)。"""
     w, h, rnd = 1000, 170, random.uniform
     css = ("@keyframes tw{to{opacity:.15}}@keyframes sink{from{transform:translateY(-30px)}to{transform:translateY(20px)}}"
            "@keyframes float{from{transform:translateX(-80px)}to{transform:translateX(1080px)}}"
            "@keyframes bob{from{transform:translateY(-2px)}to{transform:translateY(2px)}}"
            "@keyframes fly{0%{opacity:0}30%{opacity:1}100%{transform:translate(20px,-30px);opacity:0}}"
-           "@keyframes glint{to{transform:scaleX(.5);opacity:.1}}")
+           "@keyframes glint{to{transform:scaleX(.5);opacity:.1}}"
+           "@keyframes ring{0%{transform:scale(0);opacity:.5}13%{transform:scale(1);opacity:0}100%{opacity:0}}")
+    rings = ''.join(f'<ellipse class="c" cx="{-80 + 1160 * t / 30:.1f}" cy="124" rx="240" ry="26" fill="none" stroke="#D8CBE0" '
+                    f'stroke-width="1" vector-effect="non-scaling-stroke" style="animation:ring 30s linear {t}s infinite backwards"/>'
+                    for t in [i * .6 for i in range(50)])
     glint = ''.join(f'<rect class="c" x="{700 - ww / 2 + rnd(-4, 4):.0f}" y="{y}" width="{ww:.0f}" height="1.2" fill="#FBEFD9" opacity=".4" '
                     f'style="animation:glint {rnd(1.6, 3):.1f}s ease-in-out {rnd(-3, 0):.1f}s infinite alternate"/>'
                     for y in range(112, 168, 4) for ww in [rnd(8, 16) + (y - 112) * .4])
@@ -215,12 +244,12 @@ def footer():
             '<radialGradient id="mh"><stop offset="0" stop-color="#FBEFD9" stop-opacity=".35"/><stop offset="1" stop-color="#FBEFD9" stop-opacity="0"/></radialGradient></defs>'
             f'<rect width="{w}" height="{h}" fill="url(#night)"/>{dust(60, w, 100)}'
             '<g style="animation:sink 24s ease-in-out infinite alternate"><circle cx="700" cy="80" r="50" fill="url(#mh)"/><circle cx="700" cy="80" r="13" fill="#FBEFD9"/></g>'
-            f'<path d="M0 104 Q 250 92 500 102 T 1000 100 V110 H0Z" fill="#221F3B"/><rect y="108" width="{w}" height="{h - 108}" fill="url(#water)"/>{glint}'
+            f'<path d="M0 104 Q 250 92 500 102 T 1000 100 V110 H0Z" fill="#221F3B"/><rect y="108" width="{w}" height="{h - 108}" fill="url(#water)"/>{glint}{rings}'
             '<g style="animation:float 30s linear infinite"><g style="animation:bob 2.4s ease-in-out infinite alternate">'
             '<circle cx="0" cy="118" r="22" fill="url(#soft)"/><rect x="-6" y="110" width="12" height="12" rx="2" fill="#F7B867"/>'
             '<path d="M-10 122h20l-3 4h-14z" fill="#3B2A24"/><rect x="-2" y="128" width="4" height="12" fill="#F7B867" opacity=".25"/></g></g>'
             f'{flies}')
-    save('footer.svg', w, h, '夜が更け、月が湖へ沈み、灯籠が一つ水面を流れていく', css, body)
+    save('footer.svg', w, h, '夜が更け、月が湖へ沈み、流れる灯籠の波紋が進む先で詰まり後ろで広がる', css, body)
 
 
 header()
