@@ -109,58 +109,17 @@ def header():
 
 
 def welcome():
-    """来た人を迎える: 障子が開くと戸口の二つの隙間から円い波面が広がって重なり(ヤングの二重スリット)、
-    道に明暗の干渉縞 I ∝ cos²(πx/F)·sinc²(x/E) が落ちる。灯籠が戸口から外へ順に灯る。"""
-    w, h, rnd = 1000, 180, random.uniform
-    waves = ''.join(f'<circle class="c" cx="{x}" cy="95" r="520" fill="none" stroke="#FFE2B0" stroke-width="1" vector-effect="non-scaling-stroke" '
-                    f'style="animation:wave 6s linear {1.6 + j / 4:.2f}s infinite backwards"/>' for x in (470, 530) for j in range(24))
-    fringe = ''.join(f'<rect x="{x}" y="150" width="4" height="30" fill="#FFC978" '
-                     f'opacity="{.6 * math.cos(math.pi * (x - 498) / 56) ** 2 * (math.sin(u := (x - 498) / 130 + 1e-9) / u) ** 2:.2f}"/>'
-                     for x in range(0, w, 4))
-    lattice = lambda x0: ''.join(f'<path d="M{x0 + 20 * i} 30v120" />' for i in (1, 2)) + ''.join(
-        f'<path d="M{x0} {30 + 30 * j}h60" />' for j in (1, 2, 3))
-    door = lambda x0, d: (f'<g style="animation:{d} 1.4s cubic-bezier(.23,1,.32,1) .6s backwards" class="{d}">'
-                          f'<rect x="{x0}" y="30" width="60" height="120" fill="#F6E3C4" fill-opacity=".92"/>'
-                          f'<g stroke="#5A4036" stroke-width="2">{lattice(x0)}</g>'
-                          f'<rect x="{x0}" y="30" width="60" height="120" fill="none" stroke="#5A4036" stroke-width="4"/></g>')
-    lamps = ''
-    for i in range(6):
-        for sgn in (-1, 1):
-            x = 500 + sgn * (150 + i * 66)
-            lamps += (f'<g style="animation:lit .8s ease-out {1.6 + i * .22:.2f}s backwards">'
-                      f'<circle cx="{x}" cy="146" r="18" fill="url(#lg)" style="animation:flick {rnd(2, 3.5):.1f}s ease-in-out {rnd(-3, 0):.1f}s infinite alternate"/>'
-                      f'<rect x="{x - 3}" y="140" width="6" height="10" rx="1.5" fill="#FFD9A0"/></g>'
-                      f'<rect x="{x - 4}" y="150" width="8" height="12" fill="#2A2540"/>')
-    sparks = ''.join(f'<circle cx="500" cy="95" r="{rnd(1.4, 3):.1f}" fill="#FFE2B0" '
-                     f'style="--x:{rnd(-420, 420):.0f}px;--y:{rnd(-80, 70):.0f}px;animation:spark {rnd(4, 7):.1f}s ease-out {1.4 + rnd(0, 5):.1f}s infinite backwards"/>'
-                     for _ in range(32))
-    css = ("@keyframes hi{from{opacity:0;transform:translateY(8px)}}@keyframes dl{from{transform:translateX(60px)}}@keyframes dr{from{transform:translateX(-60px)}}"
-           ".dl{transform:translateX(0)}.dr{transform:translateX(0)}"
-           "@keyframes glow{from{opacity:0;transform:scaleX(.1)}}@keyframes breathe{to{opacity:.75}}"
-           "@keyframes lit{from{opacity:.15}}@keyframes flick{to{opacity:.6}}"
-           "@keyframes wave{from{transform:scale(0);opacity:.3}to{transform:scale(1);opacity:0}}"
-           "@keyframes spark{0%{transform:translate(0,0) scale(.5);opacity:0}15%{opacity:1}100%{transform:translate(var(--x),var(--y)) scale(1.4);opacity:0}}"
-           ".c{transform-box:fill-box;transform-origin:center}"
-           "@media (prefers-reduced-motion:reduce){*{animation:none!important}}")
-    body = ('<defs><radialGradient id="room"><stop offset="0" stop-color="#FFE7BD"/><stop offset="1" stop-color="#E8955A"/></radialGradient>'
-            '<radialGradient id="aura"><stop offset="0" stop-color="#FFC978" stop-opacity=".5"/><stop offset="1" stop-color="#FFC978" stop-opacity="0"/></radialGradient>'
-            '<radialGradient id="lg"><stop offset="0" stop-color="#FFC978" stop-opacity=".7"/><stop offset="1" stop-color="#FFC978" stop-opacity="0"/></radialGradient>'
-            '<linearGradient id="dusk" x2="0" y2="1"><stop offset="0" stop-color="#1C1A33"/><stop offset="1" stop-color="#2E2A4C"/></linearGradient>'
-            f'<clipPath id="wc"><rect width="{w}" height="{h}" rx="18"/></clipPath></defs>'
-            f'<g clip-path="url(#wc)"><rect width="{w}" height="{h}" fill="url(#dusk)"/><rect y="150" width="{w}" height="30" fill="#211E37"/>{waves}'
-            f'<g class="c" style="animation:glow 1.6s ease-out .8s backwards">{fringe}<ellipse cx="500" cy="95" rx="260" ry="90" fill="url(#aura)" class="c" style="animation:breathe 4s ease-in-out 2.4s infinite alternate"/>'
-            '</g>'
-            '<rect x="440" y="30" width="120" height="120" fill="url(#room)"/>'
-            f'{door(380, "dl")}{door(560, "dr")}'
-            '<text class="c" x="500" y="104" text-anchor="middle" font-size="42" font-style="italic" fill="#FFF6E6" '
-            'stroke="#4A3229" stroke-width="4" paint-order="stroke" '
-            'style="font-family:Georgia,serif;animation:hi 1.2s cubic-bezier(.23,1,.32,1) 1.4s backwards">Welcome!</text>'
-            '<path d="M372 26h256" stroke="#5A4036" stroke-width="6" stroke-linecap="round"/>'
-            f'{lamps}{sparks}</g>')
-    label = 'Welcome! 障子が開くと二つの隙間から光の波が広がって重なり、道に干渉縞が落ち、灯籠が順に灯る'
-    with open('welcome.svg', 'w') as f:
-        f.write(f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {w} {h}" width="{w}" height="{h}" role="img" '
-                f'aria-label="{label}"><title>{label}</title><style>{css}</style>{body}</svg>\n')
+    """来た人を静かに迎える: 夜空に Welcome! が一文字ずつ灯り、下に細い線が引かれる。"""
+    w, h = 1000, 180
+    letters = ''.join(f'<tspan style="animation:hi 1.6s ease-out {.4 + i * .18:.2f}s backwards">{ch}</tspan>' for i, ch in enumerate('Welcome!'))
+    css = ("@keyframes tw{to{opacity:.15}}@keyframes hi{from{opacity:0}}@keyframes line{from{transform:scaleX(0)}}"
+           "@keyframes breathe{to{opacity:.5}}")
+    body = (f'<defs>{SKY}</defs><rect width="{w}" height="{h}" fill="url(#night)"/>{dust(40, w, h)}'
+            '<ellipse class="c" cx="500" cy="90" rx="220" ry="60" fill="url(#soft)" opacity=".25" style="animation:breathe 8s ease-in-out infinite alternate"/>'
+            '<text x="500" y="104" text-anchor="middle" font-size="44" font-style="italic" fill="#FFF6E6" '
+            f'style="font-family:Georgia,serif">{letters}</text>'
+            '<path class="c" d="M420 124h160" stroke="#D8CBE0" stroke-width="1" opacity=".6" style="animation:line 1.6s ease-out 2s backwards"/>')
+    save('welcome.svg', w, h, 'Welcome! 夜空に一文字ずつ灯り、下に細い線が引かれる', css, body)
 
 
 def save(name, w, h, label, css, body):
@@ -206,20 +165,37 @@ def epicycles(pts, K, T):
             f'<g transform="translate({c[0][0].real:.1f} {c[0][0].imag:.1f})">{rings}</g>')
 
 
+DIPPER = [(206.89, 49.31), (200.98, 54.93), (193.51, 55.96), (183.86, 57.03), (178.46, 53.69), (165.46, 56.38), (165.93, 61.75), (183.86, 57.03)]
+CASSIOPEIA = [(2.29, 59.15), (10.13, 56.54), (14.18, 60.72), (21.45, 60.24), (28.60, 63.67)]
+ORION = [(83.78, 9.93), (88.79, 7.41), (85.19, -1.94), (86.94, -9.67), (85.19, -1.94), (84.05, -1.20), (83.00, -.30),
+         (78.63, -8.20), (83.00, -.30), (81.28, 6.35), (83.78, 9.93)]
+CYGNUS = [(296.24, 45.13), (305.56, 40.26), (311.55, 33.97), (305.56, 40.26), (310.36, 45.28), (305.56, 40.26), (299.08, 35.08), (292.68, 27.96)]
+
+
+def sky(stars, cx):
+    """赤経・赤緯を空を見上げた向き(東が左)に写し、中心 (cx, 100) の 170×130 の枠に収める。"""
+    d0 = math.radians(sum(d for _, d in stars) / len(stars))
+    xy = [(-r * math.cos(d0), -d) for r, d in stars]
+    xs, ys = [x for x, _ in xy], [y for _, y in xy]
+    k = min(170 / (max(xs) - min(xs)), 130 / (max(ys) - min(ys)))
+    mx, my = (max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2
+    return [(cx + (x - mx) * k, 100 + (y - my) * k) for x, y in xy]
+
+
 def constellation():
-    """星座の線を、回る円を重ねたフーリエ級数(周転円)の先端が描いていく。"""
-    w, h, T, rnd = 1000, 200, 16, random.uniform
+    """北斗七星・カシオペヤ座・オリオン座・はくちょう座の線を、回る円を重ねたフーリエ級数(周転円)の先端が描いていく。"""
+    w, h, T = 1000, 200, 16
     body = f'<defs>{SKY}</defs><rect width="{w}" height="{h}" fill="url(#night)"/>' + dust(90, w, h)
     body += ('<ellipse class="c" cx="500" cy="100" rx="520" ry="40" fill="#8E86C9" opacity=".08" '
              'style="animation:drift 20s ease-in-out infinite alternate"/>')
     css = ("@keyframes tw{to{opacity:.15}}@keyframes drift{from{transform:rotate(-8deg)}to{transform:translateX(40px) rotate(-8deg)}}"
            "@keyframes spin{to{transform:rotate(360deg)}}"
            "@keyframes trace{0%{stroke-dashoffset:1;opacity:1}88%{opacity:1}100%{stroke-dashoffset:0;opacity:0}}")
-    for cx in (150, 390, 620, 860):
-        pts = sorted((cx + rnd(-90, 90), rnd(30, 170)) for _ in range(random.randint(5, 7)))
-        body += epicycles(pts, 24, T) + ''.join(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="9" fill="url(#soft)" opacity=".6"/>'
-                                               f'<circle cx="{x:.0f}" cy="{y:.0f}" r="2" fill="#FFF3D6"/>' for x, y in pts)
-    save('constellation.svg', w, h, '星座の線を、回る円を重ねたフーリエ級数(周転円)の先端が描いていく', css, body)
+    for stars, cx in ((DIPPER, 150), (CASSIOPEIA, 390), (ORION, 620), (CYGNUS, 860)):
+        pts = sky(stars, cx)
+        body += epicycles(pts, 4 * len(pts), T) + ''.join(f'<circle cx="{x:.0f}" cy="{y:.0f}" r="9" fill="url(#soft)" opacity=".6"/>'
+                                               f'<circle cx="{x:.0f}" cy="{y:.0f}" r="2" fill="#FFF3D6"/>' for x, y in dict.fromkeys(pts))
+    save('constellation.svg', w, h, '北斗七星・カシオペヤ座・オリオン座・はくちょう座の線を、回る円を重ねたフーリエ級数(周転円)の先端が描いていく', css, body)
 
 
 def footer():
